@@ -64,6 +64,11 @@ jobs:
               exit 1
           fi
 
+          if [ -z "$GIST_ID" ]; then
+              echo "Error: environment 'GIST_ID' cannot be empty"
+              exit 1
+          fi
+
       - name: Collect
         run: python3 -u subscribe/collect.py --all --overwrite --skip
 

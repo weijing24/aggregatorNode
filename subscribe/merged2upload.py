@@ -57,8 +57,8 @@ def main():
         print(f"Encoded merged content written to {merged_file_path}")
 
     # Upload the merged content to the Gist 
-    github_token = 'your github_token'
-    gist_id = 'your gist_id'
+    github_token = os.environ.get("GIST_PAT", "")
+    gist_id = os.environ.get("GIST_ID", "")
     upload_to_gist(encoded_merged_content, gist_id, github_token)
 
 if __name__ == "__main__":
