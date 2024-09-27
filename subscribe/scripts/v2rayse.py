@@ -26,6 +26,7 @@ from logger import logger
 from origin import Origin
 
 import subconverter
+from clash import QuotedStr, quoted_scalar
 
 # outbind type
 SUPPORT_TYPE = ["ss", "ssr", "vmess", "trojan", "snell", "vless", "hysteria2", "hysteria", "http", "socks5"]
@@ -114,6 +115,7 @@ def list_files(base: str, date: str, maxsize: int, last: datetime) -> list[str]:
     prefix, files = f"{base}?prefix={date}/", []
 
     while truncated and count < 3:
+        count += 1
         url = prefix if not marker else f"{prefix}&marker={marker}"
         try:
             content = utils.http_get(url=url)
@@ -153,7 +155,6 @@ def list_files(base: str, date: str, maxsize: int, last: datetime) -> list[str]:
 
                 files.append(f"{base}/{name}")
         except:
-            count += 1
             logger.error(f"[V2RaySE] list files error, date: {date}, marker: {marker}")
 
     return files
@@ -293,6 +294,7 @@ def fetch(params: dict) -> list:
     generate = os.path.join(datapath, "generate.ini")
 
     with open(filepath, "w+", encoding="utf8") as f:
+        yaml.add_representer(QuotedStr, quoted_scalar)
         yaml.dump(data, f, allow_unicode=True)
 
     if os.path.exists(generate) and os.path.isfile(generate):
@@ -301,6 +303,7 @@ def fetch(params: dict) -> list:
     success = subconverter.generate_conf(generate, artifact, source, dest, "mixed")
     if not success:
         logger.error(f"[V2RaySE] cannot generate subconverter config file")
+        yaml.add_representer(QuotedStr, quoted_scalar)
         content = yaml.dump(data=data, allow_unicode=True)
     else:
         _, program = which_bin()
@@ -322,7 +325,7 @@ def fetch(params: dict) -> list:
         # clean workspace
         workflow.cleanup(datapath, filenames=[source, dest, "generate.ini"])
 
-    success = pushtool.push_to(content=content, push_conf=proxies_store, group="v2rayse")
+    success = pushtool.push_to(content=content or " ", push_conf=proxies_store, group="v2rayse")
     if not success:
         filename = os.path.join(os.path.dirname(datapath), "data", "v2rayse.txt")
         logger.error(f"[V2RaySE] failed to storage {len(proxies)} proxies, will save it to local file {filename}")
